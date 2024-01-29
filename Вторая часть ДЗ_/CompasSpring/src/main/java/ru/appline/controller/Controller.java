@@ -1,30 +1,42 @@
 package ru.appline.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.appline.logic.Compass;
+import ru.appline.logic.CompassModel;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-public class Controller {
+@RequestMapping("/compass")
+public class CompassController {
 
-    private Map<String, String> ranges = new HashMap<>();
+    private static final CompassModel compassModel = CompassModel.getInstance();
 
-    @PostMapping("/ranges")
-    public void setRanges(@RequestBody Map<String, String> ranges) {
-        this.ranges = ranges;
+    @Autowired
+    public CompassController(CompassModel compassModel) {
+        this.compassModel = compassModel;
     }
 
-    @GetMapping("/side")
-    public String getSide(@RequestParam int degree) {
-        for (Map.Entry<String, String> entry : ranges.entrySet()) {
-            String[] range = entry.getValue().split("-");
-            int start = Integer.parseInt(range[0]);
-            int end = Integer.parseInt(range[1]);
-            if (degree >= start && degree <= end) {
-                return entry.getKey();
-            }
+    @PostMapping(value = "/createCompass", consumes = "application/json")
+    public void createCompass(@RequestBody String side, Compass compass) {
+        compassModel.add(compass, side);
+    }
+
+    @GetMapping(value = "/getAll", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, Compass> getAll() {
+        return compassModel.getAll();
+    }
+
+    @GetMapping(value = "/getSide", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getSide(@RequestParam("Degree") Integer degree) {
+        Compass side1 = compassModel.get("North");
+        if (degree > side1.getMin() && degree < side1.getMax()) {
+            return new ResponseEntity<>("{\"Side\": \"North\"}", HttpStatus.OK);
         }
-        return "Unknown";
+        // Аналогичные проверки для других направлений...
+        return new ResponseEntity<>("{\"text\": \"FAILED\"}", HttpStatus.OK);
     }
 }

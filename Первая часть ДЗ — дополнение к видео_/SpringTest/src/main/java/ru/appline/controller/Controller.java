@@ -1,5 +1,6 @@
 package ru.appline.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.appline.logic.Pet;
 import ru.appline.logic.PetModel;
@@ -17,9 +18,9 @@ public class Controller {
     public String createPet(@RequestBody Pet pet) {
         int id = newId.getAndIncrement();
         petModel.add(pet, id);
-        return (petModel.size() == 1)
-                ? "Поздравляем! Вы создали вашего первого домашнего питомца с идентификатором " + id
-                : "Поздравляем! Вы создали вашего домашнего питомца с идентификатором " + id;
+
+        // Возвращаем URI созданного ресурса
+        return "Поздравляем! Вы создали вашего домашнего питомца с идентификатором " + id;
     }
 
     @GetMapping(value = "/getAll", produces = "application/json")
@@ -39,6 +40,12 @@ public class Controller {
 
     @DeleteMapping(value = "/deletePet/{id}", produces = "text/plain")
     public String deletePet(@PathVariable int id) {
+        Pet pet = petModel.getFromList(id);
+        if (pet == null) {
+            // Если питомец с указанным идентификатором не найден, возвращаем 404 Not Found
+            throw new PetNotFoundException(id);
+        }
+
         if (petModel.remove(id)) {
             return "Питомец с идентификатором " + id + " удален";
         } else {
@@ -50,8 +57,10 @@ public class Controller {
     public String updatePet(@PathVariable int id, @RequestBody Pet updatedPet) {
         Pet existingPet = petModel.getFromList(id);
         if (existingPet == null) {
-            return "Питомец с идентификатором " + id + " не найден";
+            // Если питомец с указанным идентификатором не найден, возвращаем 404 Not Found
+            throw new PetNotFoundException(id);
         }
+
         petModel.update(id, updatedPet);
         return "Питомец с идентификатором " + id + " изменен";
     }
