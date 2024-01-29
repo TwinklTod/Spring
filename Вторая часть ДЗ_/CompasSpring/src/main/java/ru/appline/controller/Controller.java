@@ -17,9 +17,6 @@ public class Controller {
 
     @GetMapping("/side")
     public String getSide(@RequestParam int degree) {
-        if (ranges.isEmpty()) {
-            return "Ошибка: Диапазоны не заданы.";
-        }
         for (Map.Entry<String, String> entry : ranges.entrySet()) {
             String[] range = entry.getValue().split("-");
             int start = Integer.parseInt(range[0]);
@@ -31,4 +28,3 @@ public class Controller {
         return "Unknown";
     }
 }
-
