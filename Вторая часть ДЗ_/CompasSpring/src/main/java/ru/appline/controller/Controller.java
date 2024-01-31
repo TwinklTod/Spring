@@ -21,11 +21,12 @@ public class Controller {
             String[] range = entry.getValue().split("-");
             int start = Integer.parseInt(range[0]);
             int end = Integer.parseInt(range[1]);
-            if (degree >= start && degree <= end) {
+            if ((start < end) && (degree >= start || degree <= end)) {
+                return entry.getKey();
+            } else if ((start >= end) && (degree >= start && degree <= end)) {
                 return entry.getKey();
             }
         }
         return "Unknown";
     }
 }
-
